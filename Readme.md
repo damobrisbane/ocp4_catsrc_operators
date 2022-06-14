@@ -6,7 +6,7 @@ Most parameters are in _.json_ file. These two parameters are command line argum
 * FN_CATSRC ($1)
 * STAGING_REGISTRY ($2)
 
-The rest are provided in "`catalog-source.json` file. Here we are specifying apicurio-registry, yaks packages from the and dynatrace from the respective Red Hat community and certified indexes:
+The rest are provided in "`catsrc-packages.json` file. Here we are specifying apicurio-registry, yaks packages from the and dynatrace from the respective Red Hat community and certified indexes:
 
 ```
 {
