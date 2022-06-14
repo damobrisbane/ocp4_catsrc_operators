@@ -1,0 +1,28 @@
+{
+  "registry_folder": "ocp48-operators",
+  "version": "v4.8",
+  "publisher": "My Team",
+  "registries": [
+    {
+      "name": "registry.redhat.io/redhat/community-operator-index",
+      "label": "community",
+      "packages": [
+        "apicurio-registry",
+        "yaks"
+      ]
+    },
+    {
+      "name": "registry.redhat.io/redhat/redhat-operator-index",
+      "label": "redhat",
+      "packages": []
+    },
+    {
+      "name": "registry.redhat.io/redhat/certified-operator-index",
+      "label": "certified",
+      "packages": [
+        "dynatrace-operator"
+      ]
+    }
+  ]
+}
+
