@@ -74,7 +74,7 @@ for _J_REG in $(echo $J0 | jq -rc '.registries[]'); do
     echo -ne "\n******* Mirror $REG_NAME ******\n"
 
     LOGDIR=$LOGBASE/$REGISTRY_FOLDER/$REG_LABEL
-    [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
+    [[ ! -d $LOGDIR ]] && mkdir -p $LOGDIR
     LOGFILE=$LOGDIR/$REGISTRY_FOLDER/$REG_LABEL-$(d1).log
 
     echo "cp $FN_CATSRC to $LOGDIR" |tee -a $LOGFILE
