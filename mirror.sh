@@ -5,7 +5,7 @@ OC_BINARY='/usr/local/bin/oc'
 DOCKER_BINARY='/usr/bin/docker'
 AUTH_FILE="merged_pullsecret.json"
 DOCKER_RUNTIME=docker
-#LOGDIR=/tmp/mirror-$$
+LOGBASE=/tmp/mirror-$$
 
 FN_CATSRC=${1:-"catsrc-packages.json"}
 STAGING_REGISTRY=${2:-"registry.internal.lan"}
@@ -19,8 +19,7 @@ function d1() {
 }
 
 function catsrc_config() {
-  local -n _L_CATS=$1
-  local _J0=$2
+  local _J0=$1
   local -a L1
   oIFS=$IFS IFS=$'\n' 
   REGISTRY_FOLDER=$(echo $_J0 | jq -r '.registry_folder')
@@ -31,15 +30,14 @@ function catsrc_config() {
 
 function create_idx_image() {
   echo -ne "\n==== ..Creating Index Image: ====\n" |tee $LOGFILE 
-  mkdir -p ${INDEX_TARGET_FOLDER} >/dev/null 2>&1
-  CMD="sudo $OPM_BINARY index prune -c $DOCKER_RUNTIME -f $INDEX_UPSTREAM -p $PACKAGES -t $INDEX_TAG"
+  CMD="$OPM_BINARY index prune -c $DOCKER_RUNTIME -f $INDEX_UPSTREAM -p $PACKAGES -t $INDEX_TAG"
   echo -ne "\n.. $CMD\n\n" |tee -a $LOGFILE 
   [[ $DRYRUN == "n" ]] && eval $CMD |tee -a $LOGFILE
 }
 
 function push_image() {
   echo -ne "\n==== ..Push Image: ====\n" |tee $LOGFILE
-  CMD="sudo $DOCKER_BINARY push $INDEX_TAG"
+  CMD="$DOCKER_BINARY push $INDEX_TAG"
   echo -ne "\n.. $CMD\n\n" |tee -a $LOGFILE
   eval $CMD
   [[ $DRYRUN == "n" ]] && eval $CMD |tee -a $LOGFILE
@@ -47,7 +45,7 @@ function push_image() {
 
 function mirror_manifests() {
   echo -ne "\n==== ..Mirror Manifests:\n" |tee $LOGFILE
-  CMD="sudo $OC_BINARY adm catalog mirror $INDEX_TAG $MIRROR_TARGET --max-components=5 --insecure=true --index-filter-by-os=\"linux/amd64\" --to-manifests=${LOGDIR}"
+  CMD="$OC_BINARY adm catalog mirror $INDEX_TAG $MIRROR_TARGET --max-components=5 --insecure=true --index-filter-by-os=\"linux/amd64\" --to-manifests=${LOGDIR}"
   echo -ne "\n.. $CMD\n\n" |tee -a $LOGFILE
   [[ $DRYRUN == "n" ]] && eval $CMD |tee -a $LOGFILE
 }
@@ -57,10 +55,11 @@ if [[ $J0 == "" ]]; then
   echo "Error parsing $FN_CATSRC" && exit 1
 fi
 
-unset L_CATS;declare -A L_CATS
 declare -a L_PACKAGES
 
-catsrc_config L_CATS $J0
+catsrc_config $J0
+
+
 
 echo -ne "\n=========== Mirroring $VERSION Manifests ===========\n"
 
@@ -74,10 +73,9 @@ for _J_REG in $(echo $J0 | jq -rc '.registries[]'); do
 
     echo -ne "\n******* Mirror $REG_NAME ******\n"
 
-    LOGDIR=logs/$REGISTRY_FOLDER/$REG_LABEL
-    mkdir -p $LOGDIR >/dev/null 2>&1
-    LOGFILE=$LOGDIR/$REG_LABEL-$(d1).log
-    rm $LOGFILE >/dev/null 2>&1 
+    LOGDIR=$LOGBASE/$REGISTRY_FOLDER/$REG_LABEL
+    [[ ! -d $LOGDIR ]] && mkdir $LOGDIR
+    LOGFILE=$LOGDIR/$REGISTRY_FOLDER/$REG_LABEL-$(d1).log
 
     echo "cp $FN_CATSRC to $LOGDIR" |tee -a $LOGFILE
     [[ $DRYRUN == "n" ]] && cp $FN_CATSRC $LOGDIR
@@ -99,4 +97,3 @@ for _J_REG in $(echo $J0 | jq -rc '.registries[]'); do
 done
 
 echo
-
